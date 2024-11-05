@@ -1,4 +1,5 @@
 # **Manual Completo de GAIA²**
+####  Global AI Assembled with Green Awareness and Integrated Accountability
 
 ---
 
