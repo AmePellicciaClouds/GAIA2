@@ -1,0 +1,65 @@
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const { Pool } = require('pg');
+
+const app = express();
+app.use(express.json());
+
+const pool = new Pool({
+    connectionString: process.env.DB_CONNECTION_STRING,
+});
+
+// Endpoint para manejar solicitudes de IA
+app.post('/api/solicitud-ia', async (req, res) => {
+    const { usuario_id, modelo_id, datos_entrada } = req.body;
+
+    try {
+        // Obtener detalles del modelo y proveedor
+        const modeloResult = await pool.query('SELECT * FROM ModelosIA WHERE modelo_id = $1', [modelo_id]);
+        if (modeloResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Modelo de IA no encontrado' });
+        }
+        const modelo = modeloResult.rows[0];
+
+        const proveedorResult = await pool.query('SELECT * FROM ProveedoresIA WHERE proveedor_id = $1', [modelo.proveedor_id]);
+        const proveedor = proveedorResult.rows[0];
+
+        // Obtener detalles de la ruta
+        const rutaResult = await pool.query('SELECT * FROM InterfazRouter WHERE proveedor_id = $1 AND modelo_id = $2 AND estado = $3', [modelo.proveedor_id, modelo.modelo_id, 'Activo']);
+        if (rutaResult.rows.length === 0) {
+            return res.status(500).json({ error: 'Ruta de IA no encontrada' });
+        }
+        const ruta = rutaResult.rows[0];
+
+        // Enviar solicitud al proveedor de IA
+        const response = await axios({
+            method: ruta.metodo,
+            url: proveedor.api_endpoint + ruta.metodo_path, // Asumiendo que `metodo_path` es un campo adicional en InterfazRouter
+            headers: {
+                'Authorization': `Bearer ${proveedor.clave_api}`,
+                'Content-Type': 'application/json',
+            },
+            data: datos_entrada,
+        });
+
+        // Registrar la solicitud en la base de datos
+        const insertResult = await pool.query(
+            'INSERT INTO SolicitudesIA(usuario_id, modelo_id, datos_entrada, datos_salida, estado) VALUES($1, $2, $3, $4, $5) RETURNING solicitud_id',
+            [usuario_id, modelo_id, datos_entrada, response.data, 'Completada']
+        );
+
+        res.json({
+            solicitud_id: insertResult.rows[0].solicitud_id,
+            datos_salida: response.data,
+        });
+    } catch (error) {
+        console.error('Error en solicitud de IA:', error);
+        res.status(500).json({ error: 'Error procesando la solicitud de IA' });
+    }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Interfaz Router escuchando en el puerto ${PORT}`);
+});
