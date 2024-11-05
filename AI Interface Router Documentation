@@ -1,0 +1,854 @@
+# AI Interface Router Documentation
+
+![GAIA² Logo](https://your-logo-url.com/logo.png)
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [API Reference](#api-reference)
+  - [Endpoints](#endpoints)
+  - [Request Structure](#request-structure)
+  - [Response Structure](#response-structure)
+- [Integration Steps](#integration-steps)
+- [Security](#security)
+- [Error Handling](#error-handling)
+- [Examples](#examples)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
+
+## Introduction
+
+**(GAIA)^2-DM-IRPM** (Interfaz Router para Proveedores de Modelos de IA) is a pivotal component of the GAIA² platform, designed to facilitate seamless and flexible integration with multiple AI service providers. By abstracting the complexities of different AI APIs, the Interface Router ensures that GAIA² remains agnostic to specific technologies, promoting scalability, maintainability, and ease of integration.
+
+## Architecture
+
+The AI Interface Router is built as a microservice within the GAIA² ecosystem, interacting with various AI providers through standardized interfaces. Its primary responsibilities include:
+
+- **Routing Requests:** Directing AI-related requests to the appropriate AI provider based on predefined criteria.
+- **Abstraction Layer:** Providing a uniform interface for GAIA² to interact with diverse AI models and services.
+- **Authentication & Security:** Managing secure communication with AI providers, including API key management and encrypted data transmission.
+- **Logging & Monitoring:** Tracking all interactions with AI providers for auditing and performance monitoring.
+
+![Architecture Diagram](https://your-architecture-diagram-url.com/diagram.png)
+
+*Note: Replace the image URL with your actual architecture diagram.*
+
+## Features
+
+- **Agnostic Integration:** Supports multiple AI providers without tight coupling to specific APIs.
+- **Dynamic Routing:** Routes requests to AI models based on task requirements and provider availability.
+- **Secure Communication:** Ensures all data exchanges with AI providers are encrypted and authenticated.
+- **Scalable Design:** Easily add or remove AI providers as needed without significant architectural changes.
+- **Comprehensive Logging:** Maintains detailed logs of all interactions for auditing and troubleshooting.
+- **Error Handling:** Robust mechanisms to handle and recover from failures in AI provider interactions.
+
+## Installation
+
+### Prerequisites
+
+- **Node.js** (v14.x or higher)
+- **PostgreSQL** (v12.x or higher)
+- **Apache Kafka**
+- **Redis**
+- **Docker** (optional, for containerization)
+- **Git**
+
+### Steps
+
+1. **Clone the Repository**
+
+    ```bash
+    git clone https://github.com/your-repo/gaia2-interface-router.git
+    cd gaia2-interface-router
+    ```
+
+2. **Setup Environment Variables**
+
+    Create a `.env` file based on the provided `.env.example`.
+
+    ```bash
+    cp .env.example .env
+    ```
+
+    Edit `.env` to configure database connections, AI provider credentials, and other settings.
+
+    ```env
+    PORT=3001
+    DB_CONNECTION_STRING=postgresql://usuario:contraseña@localhost:5432/gaia2
+    KAFKA_BROKERS=kafka-broker1:9092,kafka-broker2:9092
+    REDIS_HOST=localhost
+    REDIS_PORT=6379
+    AI_PROVIDER_A_API_ENDPOINT=https://api.proveedorA.com
+    AI_PROVIDER_A_API_KEY=your_proveedorA_api_key
+    AI_PROVIDER_B_API_ENDPOINT=https://api.proveedorB.com
+    AI_PROVIDER_B_API_KEY=your_proveedorB_api_key
+    ```
+
+    *Ensure that sensitive information such as API keys is securely managed and not exposed in version control systems.*
+
+3. **Install Dependencies**
+
+    ```bash
+    npm install
+    ```
+
+4. **Database Setup**
+
+    - **PostgreSQL:**
+
+        Execute the SQL scripts to create necessary tables.
+
+        ```bash
+        psql -U your_user -d gaia2 -f scripts/setup_ai_interface_router.sql
+        ```
+
+5. **Start Services**
+
+    - **Using Docker Compose:**
+
+        Ensure Docker is installed and running, then:
+
+        ```bash
+        docker-compose up -d
+        ```
+
+    - **Manually:**
+
+        Start PostgreSQL, Kafka, and Redis using your preferred method.
+
+6. **Run the Application**
+
+    ```bash
+    npm start
+    ```
+
+    The AI Interface Router should now be running on `http://localhost:3001`.
+
+## Configuration
+
+The AI Interface Router requires configuration for connecting to databases, AI providers, and other services. All configurations are managed through environment variables defined in the `.env` file.
+
+### Key Configuration Parameters
+
+- **Database Connection:**
+  
+  ```env
+  DB_CONNECTION_STRING=postgresql://usuario:contraseña@localhost:5432/gaia2
+  ```
+
+- **Kafka Brokers:**
+  
+  ```env
+  KAFKA_BROKERS=kafka-broker1:9092,kafka-broker2:9092
+  ```
+
+- **Redis Configuration:**
+  
+  ```env
+  REDIS_HOST=localhost
+  REDIS_PORT=6379
+  ```
+
+- **Server Port:**
+  
+  ```env
+  PORT=3001
+  ```
+
+- **AI Providers Credentials:**
+  
+  For each AI provider, define their specific API endpoints and keys.
+
+  ```env
+  AI_PROVIDER_A_API_ENDPOINT=https://api.proveedorA.com
+  AI_PROVIDER_A_API_KEY=your_proveedorA_api_key
+  
+  AI_PROVIDER_B_API_ENDPOINT=https://api.proveedorB.com
+  AI_PROVIDER_B_API_KEY=your_proveedorB_api_key
+  ```
+
+## API Reference
+
+The AI Interface Router exposes RESTful APIs to handle interactions between GAIA² and various AI providers. Below is a detailed reference of the available endpoints.
+
+### Endpoints
+
+#### 1. **Register AI Provider**
+
+- **URL:** `/api/providers`
+- **Method:** `POST`
+- **Description:** Register a new AI provider in the system.
+
+**Request Body:**
+
+```json
+{
+  "nombre": "ProveedorA",
+  "descripcion": "Descripción del proveedor A",
+  "api_endpoint": "https://api.proveedorA.com",
+  "clave_api": "your_proveedorA_api_key",
+  "estado": "Activo"
+}
+```
+
+**Response:**
+
+```json
+{
+  "proveedor_id": 1,
+  "nombre": "ProveedorA",
+  "descripcion": "Descripción del proveedor A",
+  "api_endpoint": "https://api.proveedorA.com",
+  "fecha_integracion": "2024-04-27T12:34:56Z",
+  "estado": "Activo"
+}
+```
+
+#### 2. **List AI Providers**
+
+- **URL:** `/api/providers`
+- **Method:** `GET`
+- **Description:** Retrieve a list of all registered AI providers.
+
+**Response:**
+
+```json
+[
+  {
+    "proveedor_id": 1,
+    "nombre": "ProveedorA",
+    "descripcion": "Descripción del proveedor A",
+    "api_endpoint": "https://api.proveedorA.com",
+    "fecha_integracion": "2024-04-27T12:34:56Z",
+    "estado": "Activo"
+  },
+  {
+    "proveedor_id": 2,
+    "nombre": "ProveedorB",
+    "descripcion": "Descripción del proveedor B",
+    "api_endpoint": "https://api.proveedorB.com",
+    "fecha_integracion": "2024-04-28T09:20:30Z",
+    "estado": "Inactivo"
+  }
+]
+```
+
+#### 3. **Register AI Model**
+
+- **URL:** `/api/models`
+- **Method:** `POST`
+- **Description:** Register a new AI model provided by a specific AI provider.
+
+**Request Body:**
+
+```json
+{
+  "proveedor_id": 1,
+  "nombre": "ModeloClasificacionX",
+  "version": "v1.0",
+  "tipo": "Clasificación",
+  "descripcion": "Modelo de clasificación para detección de anomalías",
+  "estado": "Disponible"
+}
+```
+
+**Response:**
+
+```json
+{
+  "modelo_id": 1,
+  "proveedor_id": 1,
+  "nombre": "ModeloClasificacionX",
+  "version": "v1.0",
+  "tipo": "Clasificación",
+  "descripcion": "Modelo de clasificación para detección de anomalías",
+  "fecha_creacion": "2024-04-27T13:45:00Z",
+  "estado": "Disponible"
+}
+```
+
+#### 4. **List AI Models**
+
+- **URL:** `/api/models`
+- **Method:** `GET`
+- **Description:** Retrieve a list of all registered AI models.
+
+**Response:**
+
+```json
+[
+  {
+    "modelo_id": 1,
+    "proveedor_id": 1,
+    "nombre": "ModeloClasificacionX",
+    "version": "v1.0",
+    "tipo": "Clasificación",
+    "descripcion": "Modelo de clasificación para detección de anomalías",
+    "fecha_creacion": "2024-04-27T13:45:00Z",
+    "estado": "Disponible"
+  },
+  {
+    "modelo_id": 2,
+    "proveedor_id": 2,
+    "nombre": "ModeloGeneracionTextoY",
+    "version": "v2.1",
+    "tipo": "Generación de Texto",
+    "descripcion": "Modelo para generación automática de reportes",
+    "fecha_creacion": "2024-04-28T10:15:30Z",
+    "estado": "Disponible"
+  }
+]
+```
+
+#### 5. **Submit AI Request**
+
+- **URL:** `/api/ai-requests`
+- **Method:** `POST`
+- **Description:** Submit a request to an AI model for processing.
+
+**Request Body:**
+
+```json
+{
+  "usuario_id": 1,
+  "modelo_id": 1,
+  "datos_entrada": {
+    "sensor_id": 101,
+    "valor": 150.75,
+    "tipo_medida": "Temperatura",
+    "fecha_hora": "2024-04-27T14:00:00Z"
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "solicitud_id": 1,
+  "datos_salida": {
+    "anomaly_detected": true,
+    "confidence": 0.95,
+    "alert_message": "Temperatura elevada detectada en el sensor 101."
+  }
+}
+```
+
+#### 6. **Get AI Request Status**
+
+- **URL:** `/api/ai-requests/{solicitud_id}`
+- **Method:** `GET`
+- **Description:** Retrieve the status and results of a specific AI request.
+
+**Response:**
+
+```json
+{
+  "solicitud_id": 1,
+  "usuario_id": 1,
+  "modelo_id": 1,
+  "datos_entrada": {
+    "sensor_id": 101,
+    "valor": 150.75,
+    "tipo_medida": "Temperatura",
+    "fecha_hora": "2024-04-27T14:00:00Z"
+  },
+  "datos_salida": {
+    "anomaly_detected": true,
+    "confidence": 0.95,
+    "alert_message": "Temperatura elevada detectada en el sensor 101."
+  },
+  "fecha_solicitud": "2024-04-27T14:05:00Z",
+  "estado": "Completada"
+}
+```
+
+### Request Structure
+
+All API requests must include the necessary headers for authentication and content type. Below is an example of the required headers:
+
+```http
+POST /api/ai-requests HTTP/1.1
+Host: localhost:3001
+Authorization: Bearer your_jwt_token
+Content-Type: application/json
+
+{
+  "usuario_id": 1,
+  "modelo_id": 1,
+  "datos_entrada": {
+    "sensor_id": 101,
+    "valor": 150.75,
+    "tipo_medida": "Temperatura",
+    "fecha_hora": "2024-04-27T14:00:00Z"
+  }
+}
+```
+
+### Response Structure
+
+Responses are returned in JSON format, containing relevant data or error messages. Successful responses include the requested data, while error responses include an `error` field with a descriptive message.
+
+**Example Successful Response:**
+
+```json
+{
+  "solicitud_id": 1,
+  "datos_salida": {
+    "anomaly_detected": true,
+    "confidence": 0.95,
+    "alert_message": "Temperatura elevada detectada en el sensor 101."
+  }
+}
+```
+
+**Example Error Response:**
+
+```json
+{
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Datos de entrada incompletos o malformados.",
+    "details": "El campo 'valor' es obligatorio."
+  }
+}
+```
+
+## Integration Steps
+
+Integrating a new AI provider with GAIA² via the AI Interface Router involves several steps to ensure seamless communication and functionality.
+
+### Step 1: Register the AI Provider
+
+1. **API Endpoint:**
+
+    - `POST /api/providers`
+
+2. **Action:**
+
+    Register the new AI provider by providing its details, including API endpoint and authentication credentials.
+
+3. **Example:**
+
+    ```json
+    {
+      "nombre": "ProveedorC",
+      "descripcion": "Proveedor de IA especializado en análisis predictivo.",
+      "api_endpoint": "https://api.proveedorC.com",
+      "clave_api": "your_proveedorC_api_key",
+      "estado": "Activo"
+    }
+    ```
+
+### Step 2: Register AI Models Offered by the Provider
+
+1. **API Endpoint:**
+
+    - `POST /api/models`
+
+2. **Action:**
+
+    Register each AI model provided by the new AI provider, specifying model details and type.
+
+3. **Example:**
+
+    ```json
+    {
+      "proveedor_id": 3,
+      "nombre": "ModeloPredictivoZ",
+      "version": "v1.2",
+      "tipo": "Regresión",
+      "descripcion": "Modelo predictivo para estimación de fallos futuros.",
+      "estado": "Disponible"
+    }
+    ```
+
+### Step 3: Define Interaction Routes
+
+1. **API Endpoint:**
+
+    - `POST /api/routes`
+
+2. **Action:**
+
+    Define the routes and methods for interacting with the AI models of the new provider.
+
+3. **Example:**
+
+    ```json
+    {
+      "proveedor_id": 3,
+      "modelo_id": 3,
+      "metodo": "POST",
+      "metodo_path": "/predict-failure",
+      "parametros": {
+        "sensor_id": "integer",
+        "valor": "float",
+        "tipo_medida": "string",
+        "fecha_hora": "timestamp"
+      },
+      "respuesta": {
+        "failure_prediction": "boolean",
+        "confidence": "float",
+        "message": "string"
+      },
+      "estado": "Activo"
+    }
+    ```
+
+### Step 4: Develop and Deploy Provider-Specific Adapters
+
+1. **Purpose:**
+
+    Create adapters that handle the specific API interactions for the new AI provider, translating GAIA² requests into provider-specific formats and vice versa.
+
+2. **Implementation:**
+
+    - **Language & Framework:** Choose a language compatible with the existing microservices (e.g., Python, Node.js).
+    - **Authentication:** Implement secure handling of API keys and tokens.
+    - **Request Formatting:** Ensure requests conform to the provider's API specifications.
+    - **Response Handling:** Parse and translate responses into GAIA²'s standard format.
+
+3. **Example (Node.js Adapter):**
+
+    ```javascript
+    const axios = require('axios');
+    const { Pool } = require('pg');
+
+    const pool = new Pool({
+        connectionString: process.env.DB_CONNECTION_STRING,
+    });
+
+    const interactWithProveedorC = async (requestData) => {
+        try {
+            const response = await axios.post('https://api.proveedorC.com/predict-failure', requestData, {
+                headers: {
+                    'Authorization': `Bearer ${process.env.PROVEEDORC_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            return {
+                failure_prediction: response.data.predicted_failure,
+                confidence: response.data.confidence_score,
+                message: response.data.message,
+            };
+        } catch (error) {
+            console.error('Error interacting with ProveedorC:', error);
+            throw error;
+        }
+    };
+
+    module.exports = {
+        interactWithProveedorC,
+    };
+    ```
+
+### Step 5: Update the Interface Router to Utilize the New Adapter
+
+1. **Action:**
+
+    Modify the AI Interface Router's logic to recognize and route requests to the new AI provider using the developed adapter.
+
+2. **Example:**
+
+    ```javascript
+    const express = require('express');
+    const router = express.Router();
+    const { interactWithProveedorC } = require('./adapters/proveedorCAdapter');
+
+    router.post('/predict-failure', async (req, res) => {
+        const { sensor_id, valor, tipo_medida, fecha_hora } = req.body;
+        const requestData = { sensor_id, valor, tipo_medida, fecha_hora };
+
+        try {
+            const aiResponse = await interactWithProveedorC(requestData);
+            res.json(aiResponse);
+        } catch (error) {
+            res.status(500).json({ error: 'Error procesando la solicitud con ProveedorC' });
+        }
+    });
+
+    module.exports = router;
+    ```
+
+### Step 6: Test the Integration
+
+1. **Action:**
+
+    Conduct thorough testing to ensure that the new AI provider integrates seamlessly with GAIA².
+
+2. **Testing Aspects:**
+
+    - **Functional Testing:** Verify that requests are correctly routed and responses are accurately processed.
+    - **Performance Testing:** Ensure that the integration does not introduce significant latency.
+    - **Security Testing:** Confirm that API keys and sensitive data are handled securely.
+    - **Error Handling:** Validate that errors from the AI provider are gracefully managed and logged.
+
+## Security
+
+Security is paramount in the AI Interface Router to protect sensitive data and ensure compliance with regulatory standards.
+
+### Authentication & Authorization
+
+- **JWT Tokens:** Secure endpoints using JSON Web Tokens (JWT) to authenticate and authorize users.
+- **RBAC (Role-Based Access Control):** Implement roles and permissions to restrict access to specific functionalities based on user roles.
+
+### Data Encryption
+
+- **At Rest:** Encrypt sensitive data stored in databases using robust encryption algorithms (e.g., AES-256).
+- **In Transit:** Use TLS/SSL to encrypt data transmitted between GAIA², the AI Interface Router, and AI providers.
+
+### API Key Management
+
+- **Secure Storage:** Store AI provider API keys securely using environment variables or secret management tools like **HashiCorp Vault**.
+- **Rotation Policies:** Regularly rotate API keys to minimize the risk of unauthorized access.
+
+### Input Validation
+
+- **Sanitization:** Validate and sanitize all incoming data to prevent injection attacks and ensure data integrity.
+- **Schema Enforcement:** Use JSON schemas to enforce the structure and types of incoming requests.
+
+### Audit Logging
+
+- **Comprehensive Logs:** Maintain detailed logs of all interactions with AI providers, including timestamps, request parameters, and responses.
+- **Immutable Logs:** Store logs in a tamper-evident manner, possibly leveraging blockchain for critical audit trails.
+
+## Error Handling
+
+Robust error handling ensures that the AI Interface Router can gracefully manage failures and provide meaningful feedback.
+
+### Types of Errors
+
+- **Client Errors (4xx):** Issues with the request, such as invalid parameters or unauthorized access.
+- **Server Errors (5xx):** Problems within the AI Interface Router or AI providers, such as service downtime or unexpected exceptions.
+- **Network Errors:** Connectivity issues between GAIA² and AI providers.
+
+### Error Response Structure
+
+All error responses follow a consistent JSON structure:
+
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Descriptive error message.",
+    "details": "Additional details or context (optional)."
+  }
+}
+```
+
+### Common Error Codes
+
+- `INVALID_REQUEST`: The request payload is malformed or missing required fields.
+- `AUTHENTICATION_FAILED`: Failed to authenticate with the AI provider.
+- `PROVIDER_UNAVAILABLE`: The AI provider is currently unavailable or unresponsive.
+- `PROCESSING_ERROR`: An error occurred while processing the request.
+- `TIMEOUT`: The request to the AI provider timed out.
+
+### Retry Mechanism
+
+Implement exponential backoff strategies for retrying transient errors, such as network glitches or temporary AI provider outages.
+
+### Fallback Procedures
+
+Define fallback procedures for critical failures, such as:
+
+- **Alternative Providers:** Route requests to a secondary AI provider if the primary is unavailable.
+- **Graceful Degradation:** Provide partial functionality or default responses when full processing is not possible.
+
+## Examples
+
+### Example 1: Submitting an AI Request
+
+**Request:**
+
+```http
+POST /api/ai-requests HTTP/1.1
+Host: localhost:3001
+Authorization: Bearer your_jwt_token
+Content-Type: application/json
+
+{
+  "usuario_id": 1,
+  "modelo_id": 1,
+  "datos_entrada": {
+    "sensor_id": 101,
+    "valor": 150.75,
+    "tipo_medida": "Temperatura",
+    "fecha_hora": "2024-04-27T14:00:00Z"
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "solicitud_id": 1,
+  "datos_salida": {
+    "anomaly_detected": true,
+    "confidence": 0.95,
+    "alert_message": "Temperatura elevada detectada en el sensor 101."
+  }
+}
+```
+
+### Example 2: Registering a New AI Provider
+
+**Request:**
+
+```http
+POST /api/providers HTTP/1.1
+Host: localhost:3001
+Authorization: Bearer your_jwt_token
+Content-Type: application/json
+
+{
+  "nombre": "ProveedorC",
+  "descripcion": "Proveedor de IA especializado en análisis predictivo.",
+  "api_endpoint": "https://api.proveedorC.com",
+  "clave_api": "your_proveedorC_api_key",
+  "estado": "Activo"
+}
+```
+
+**Response:**
+
+```json
+{
+  "proveedor_id": 3,
+  "nombre": "ProveedorC",
+  "descripcion": "Proveedor de IA especializado en análisis predictivo.",
+  "api_endpoint": "https://api.proveedorC.com",
+  "fecha_integracion": "2024-04-27T15:30:00Z",
+  "estado": "Activo"
+}
+```
+
+### Example 3: Handling an Error Response
+
+**Request:**
+
+```http
+POST /api/ai-requests HTTP/1.1
+Host: localhost:3001
+Authorization: Bearer invalid_jwt_token
+Content-Type: application/json
+
+{
+  "usuario_id": 1,
+  "modelo_id": 999,
+  "datos_entrada": {}
+}
+```
+
+**Response:**
+
+```json
+{
+  "error": {
+    "code": "AUTHENTICATION_FAILED",
+    "message": "Failed to authenticate with the AI provider.",
+    "details": "Invalid API key provided."
+  }
+}
+```
+
+## Best Practices
+
+- **Secure API Keys:** Never expose API keys in client-side code or version control. Use environment variables or secret management tools.
+- **Validate Inputs:** Always validate and sanitize incoming data to prevent injection attacks and ensure data integrity.
+- **Monitor and Log:** Continuously monitor the performance and health of the AI Interface Router. Maintain comprehensive logs for auditing and troubleshooting.
+- **Scalable Design:** Design adapters and integrations to be stateless and horizontally scalable to handle increasing loads.
+- **Regular Updates:** Keep dependencies and integrations up to date to benefit from security patches and performance improvements.
+- **Graceful Error Handling:** Implement robust error handling to ensure the system remains resilient under failure conditions.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Unable to Connect to AI Provider**
+
+    - **Cause:** Incorrect `api_endpoint` or `clave_api`.
+    - **Solution:** Verify the AI provider's endpoint and API key in the `.env` file.
+
+2. **Authentication Errors**
+
+    - **Cause:** Invalid or expired JWT tokens.
+    - **Solution:** Ensure that the token is valid and has not expired. Implement token refresh mechanisms if necessary.
+
+3. **Request Timeouts**
+
+    - **Cause:** Slow response from AI provider or network issues.
+    - **Solution:** Increase timeout settings and implement retry mechanisms. Check network connectivity.
+
+4. **Database Connection Failures**
+
+    - **Cause:** Incorrect `DB_CONNECTION_STRING` or database server is down.
+    - **Solution:** Verify the database connection details and ensure that the PostgreSQL server is running.
+
+### Logs and Monitoring
+
+- **Application Logs:** Check the console or log files for detailed error messages.
+- **Monitoring Dashboards:** Use tools like **Prometheus** and **Grafana** to monitor system metrics and set up alerts for critical issues.
+- **Kafka and Redis Logs:** Ensure that Kafka brokers and Redis instances are running correctly and check their respective logs for issues.
+
+## Contributing
+
+Contributions are welcome! To contribute to the AI Interface Router, please follow these steps:
+
+1. **Fork the Repository**
+
+    Click the "Fork" button on the repository page to create your own copy.
+
+2. **Create a Feature Branch**
+
+    ```bash
+    git checkout -b feature/your-feature-name
+    ```
+
+3. **Commit Your Changes**
+
+    ```bash
+    git commit -m "Add your message here"
+    ```
+
+4. **Push to the Branch**
+
+    ```bash
+    git push origin feature/your-feature-name
+    ```
+
+5. **Open a Pull Request**
+
+    Navigate to the repository on GitHub and open a pull request detailing your changes.
+
+### Code Standards
+
+- **Consistency:** Follow the existing coding style and conventions.
+- **Documentation:** Document new functions, classes, and modules.
+- **Testing:** Write unit and integration tests for new features and bug fixes.
+- **Review:** Ensure that all contributions are peer-reviewed before merging.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## Contact
+
+For any inquiries or support, please contact:
+
+- **Project Lead:** Amedeo Pelliccia
+- **Email:** amedeo.pelliccia@gmail.com
+- **LinkedIn:** [linkedin.com/in/amedeopelliccia](https://linkedin.com/in/amedeopelliccia)
+
+---
+
+*This documentation was generated with the assistance of [ChatGPT](https://openai.com/).*
