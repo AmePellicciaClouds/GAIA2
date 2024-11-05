@@ -228,9 +228,9 @@ This project is licensed under the [MIT License](LICENSE).
 
 For any inquiries or support, please contact:
 
-- **Project Lead:** Juan Pérez
-- **Email:** juan.perez@example.com
-- **LinkedIn:** [linkedin.com/in/juanperez](https://linkedin.com/in/juanperez)
+- **Project Lead:** Amedeo Pelliccia
+- **Email:** amedeo.pelliccia@gmail.com
+- **LinkedIn:** [linkedin.com/in/juanperez](https://linkedin.com/in/amedeopelliccia)
 
 ---
 
