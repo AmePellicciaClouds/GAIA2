@@ -61,12 +61,12 @@ La arquitectura de GAIA² está compuesta por diversos módulos interconectados 
 
 ```mermaid
 graph TD
-    subgraph Plataforma_Central_de_Datos_(DCP)
+    subgraph DCP["Plataforma Central de Datos (DCP)"]
         A[Almacenamiento de Datos] --> B[Procesamiento de Datos]
         B --> C[Análisis y Reporting]
     end
 
-    subgraph Módulos_Principales
+    subgraph Modulos_Principales["Módulos Principales"]
         D[IA/ML] --> E[NLP]
         D --> F[Modelos Predictivos]
         G[Blockchain] --> H[Contratos Inteligentes]
@@ -75,12 +75,12 @@ graph TD
         L[IoT] --> M[Sensores y Actuadores]
     end
 
-    subgraph Seguridad_y_Protección_de_Datos_(SPD)
+    subgraph SPD["Seguridad y Protección de Datos (SPD)"]
         N[Cifrado de Datos] --> O[Autenticación Multifactor]
         N --> P[Detección de Intrusiones]
     end
 
-    subgraph Interfaz_de_Usuario_(UI/UX)
+    subgraph UI_UX["Interfaz de Usuario (UI/UX)"]
         Q[Dashboard Interactivo] --> R[Panel de Control]
         Q --> S[Reportes Personalizados]
     end
@@ -96,11 +96,7 @@ graph TD
     B --> L
     B --> N
     C --> Q
-```
-
-*Nota: Este diagrama representa la interacción entre los diferentes módulos y componentes de GAIA².*
-
----
+ ```
 
 ### **3.1. Plataforma Central de Datos (DCP)**
 
